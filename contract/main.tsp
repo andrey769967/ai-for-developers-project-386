@@ -54,21 +54,46 @@ model ApiError {
   message: string;
 }
 
+@doc("Bad request")
+model BadRequest is BadRequestResponse {
+  @body body: ApiError;
+}
+
+@doc("Not found")
+model NotFound is NotFoundResponse {
+  @body body: ApiError;
+}
+
+@doc("Conflict")
+model Conflict is ConflictResponse {
+  @body body: ApiError;
+}
+
+@doc("Meeting type created")
+model MeetingTypeCreated is CreatedResponse {
+  @body body: MeetingType;
+}
+
+@doc("Booking created")
+model BookingCreated is CreatedResponse {
+  @body body: Booking;
+}
+
 @route("/api/meeting-types")
 interface MeetingTypes {
   @doc("List all meeting types")
   @get list(): MeetingType[];
 
   @doc("Create a new meeting type")
-  @post create(@body body: MeetingTypeCreate): MeetingType;
+  @post create(@body body: MeetingTypeCreate): MeetingTypeCreated | BadRequest;
 
   @doc("Delete a meeting type by id")
   @route("/{id}")
-  @delete remove(@path id: string): void;
+  @delete remove(@path id: string): NoContentResponse | NotFound;
 
   @doc("Get available slots for a meeting type for the next 14 days")
   @route("/{id}/slots")
-  @get slots(@path id: string): Slot[];
+  @get slots(@path id: string): Slot[] | NotFound;
 }
 
 @route("/api/bookings")
@@ -76,6 +101,6 @@ interface Bookings {
   @doc("List all upcoming bookings")
   @get list(): Booking[];
 
-  @doc("Create a booking. Returns 409 if slot is taken.")
-  @post create(@body body: BookingCreate): Booking;
+  @doc("Create a booking. Returns 409 on overlap with an existing Booking.")
+  @post create(@body body: BookingCreate): BookingCreated | BadRequest | NotFound | Conflict;
 }

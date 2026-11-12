@@ -87,6 +87,7 @@ describe("POST /api/bookings", () => {
       },
     });
     expect(res.statusCode).toBe(404);
+    expect(JSON.parse(res.payload)).toEqual({ message: "Meeting type not found" });
   });
 
   it("rejects missing fields", async () => {
@@ -97,6 +98,9 @@ describe("POST /api/bookings", () => {
       payload: { meetingTypeId: "x", guestName: "John" },
     });
     expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({
+      message: "meetingTypeId, guestName, guestEmail and startTime are required",
+    });
   });
 
   it("rejects double booking (same slot)", async () => {
@@ -119,13 +123,13 @@ describe("POST /api/bookings", () => {
       payload: { meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime },
     });
     expect(res2.statusCode).toBe(409);
+    expect(JSON.parse(res2.payload)).toEqual({ message: "This time slot is already booked" });
   });
 
   it("rejects overlapping slots with different meeting types", async () => {
     app = await createTestApp();
     const mt15 = await createMeetingType(app, "Short", "15 min", 15);
-    const mt30 = await createTestApp as any; // unused
-    const mt30Real = await createMeetingType(app, "Long", "30 min", 30);
+    const mt30 = await createMeetingType(app, "Long", "30 min", 30);
 
     // Get slots for 15-min type
     const slotsRes = await app.inject({ method: "GET", url: `/api/meeting-types/${mt15.id}/slots` });
@@ -143,7 +147,7 @@ describe("POST /api/bookings", () => {
     const res2 = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt30Real.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime },
+      payload: { meetingTypeId: mt30.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime },
     });
     expect(res2.statusCode).toBe(409);
   });

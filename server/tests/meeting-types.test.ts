@@ -53,6 +53,9 @@ describe("POST /api/meeting-types", () => {
       payload: { name: "Test" },
     });
     expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({
+      message: "name, description and durationMinutes are required",
+    });
   });
 
   it("rejects duration not multiple of 15", async () => {
@@ -88,6 +91,7 @@ describe("DELETE /api/meeting-types/:id", () => {
     app = await createTestApp();
     const res = await app.inject({ method: "DELETE", url: "/api/meeting-types/nonexistent" });
     expect(res.statusCode).toBe(404);
+    expect(JSON.parse(res.payload)).toEqual({ message: "Meeting type not found" });
   });
 });
 
