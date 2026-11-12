@@ -1,12 +1,29 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { createTestApp, createMeetingType } from "./helpers.js";
 
 let app: FastifyInstance;
 
 afterEach(async () => {
+  vi.useRealTimers();
   if (app) await app.close();
 });
+
+// Fake now: 2026-11-13T12:00Z = 15:00 Moscow; the Booking window covers Nov 13-26
+function fakeNow(): void {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-11-13T12:00:00.000Z"));
+}
+
+async function book(startTime: string, durationMinutes = 15) {
+  app = await createTestApp();
+  const mt = await createMeetingType(app, "Test", "desc", durationMinutes);
+  return app.inject({
+    method: "POST",
+    url: "/api/bookings",
+    payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime },
+  });
+}
 
 describe("GET /api/bookings", () => {
   it("returns empty list initially", async () => {
@@ -45,6 +62,92 @@ describe("GET /api/bookings", () => {
     expect(new Date(bookings[0].startTime).getTime()).toBeLessThanOrEqual(
       new Date(bookings[1].startTime).getTime(),
     );
+  });
+});
+
+describe("GET /api/bookings Upcoming filter", () => {
+  it("hides bookings whose start time has passed", async () => {
+    fakeNow();
+    const res1 = await book("2026-11-13T12:00:00.000Z"); // 15:00 Moscow slot
+    expect(res1.statusCode).toBe(201);
+
+    // Advance 16 minutes, past the 15-minute booking's start
+    vi.setSystemTime(new Date("2026-11-13T12:16:00.000Z"));
+
+    const res = await app.inject({ method: "GET", url: "/api/bookings" });
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.payload)).toEqual([]);
+  });
+
+  it("returns bookings that have not started yet", async () => {
+    fakeNow();
+    await book("2026-11-13T12:00:00.000Z");
+
+    const res = await app.inject({ method: "GET", url: "/api/bookings" });
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.payload)).toHaveLength(1);
+  });
+});
+
+describe("createBooking validation rules", () => {
+  it("rejects a start time in the past", async () => {
+    fakeNow();
+    const res = await book("2026-11-13T11:45:00.000Z");
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: "Cannot book a slot in the past" });
+  });
+
+  it("rejects a start time beyond the Booking window", async () => {
+    fakeNow();
+    const res = await book("2026-12-15T09:00:00.000Z");
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is outside the booking window" });
+  });
+
+  it("allows a booking on the last day of the Booking window", async () => {
+    fakeNow();
+    // 09:00 Moscow on Nov 26, the 14th calendar day of the window
+    const res = await book("2026-11-26T06:00:00.000Z");
+    expect(res.statusCode).toBe(201);
+  });
+
+  it("rejects a start time at the first moment past the Booking window", async () => {
+    fakeNow();
+    // 00:00 Moscow on Nov 27 is the exclusive window end
+    const res = await book("2026-11-26T21:00:00.000Z");
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is outside the booking window" });
+  });
+
+  it("rejects a start time before Working hours", async () => {
+    fakeNow();
+    // 07:00 Moscow on Nov 16
+    const res = await book("2026-11-16T04:00:00.000Z");
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is before working hours" });
+  });
+
+  it("rejects a booking ending after Working hours", async () => {
+    fakeNow();
+    // 17:45 Moscow + 30 min ends at 18:15, past the 18:00 boundary
+    const res = await book("2026-11-16T14:45:00.000Z", 30);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: "End time exceeds working hours" });
+  });
+
+  it("allows a booking ending exactly at the Working hours end", async () => {
+    fakeNow();
+    // 17:30 Moscow + 30 min ends exactly at 18:00
+    const res = await book("2026-11-16T14:30:00.000Z", 30);
+    expect(res.statusCode).toBe(201);
+  });
+
+  it("rejects a start time not aligned to the Slot step", async () => {
+    fakeNow();
+    // 12:10 Moscow is not a multiple of 15 minutes from 09:00
+    const res = await book("2026-11-16T09:10:00.000Z");
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is not aligned to slot step" });
   });
 });
 

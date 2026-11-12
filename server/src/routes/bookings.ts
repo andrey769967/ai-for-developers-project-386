@@ -4,9 +4,9 @@ import { createBooking } from "../services/booking.js";
 import { ApiError } from "../types.js";
 
 export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
-  // GET /api/bookings - list all upcoming bookings
+  // GET /api/bookings - list Upcoming bookings (startTime >= now)
   app.get("/bookings", async () => {
-    return storage.listBookings();
+    return storage.listUpcomingBookings(new Date());
   });
 
   // POST /api/bookings - create a booking
