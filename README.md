@@ -20,7 +20,7 @@
 |------|-----------|
 | Контракт API | TypeSpec 1.18 |
 | Backend | Node.js + Fastify 5 + TypeScript |
-| Frontend | React 19 + Vite 6 + Tailwind CSS 4 |
+| Frontend | React 19 + Vite 8 + Tailwind CSS 4 |
 | Типы (frontend) | openapi-typescript + openapi-fetch |
 | Тесты | Vitest |
 | Хранилище | In-memory (Map) |
