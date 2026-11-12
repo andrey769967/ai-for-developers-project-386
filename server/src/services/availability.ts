@@ -1,19 +1,8 @@
-import { CONFIG, WORKING_START_UTC_HOUR, WORKING_END_UTC_HOUR } from "../config.js";
+import { CONFIG } from "../config.js";
 import { storage } from "../storage/in-memory.js";
 import type { Slot } from "../types.js";
 import { ApiError } from "../types.js";
-
-// Get the Moscow-local date string (YYYY-MM-DD) for a given UTC Date
-function getMoscowDateString(date: Date): string {
-  const moscowMs = date.getTime() + CONFIG.timezoneOffsetHours * 3600000;
-  return new Date(moscowMs).toISOString().slice(0, 10);
-}
-
-// Build a UTC Date for a specific Moscow date at a specific Moscow hour
-function moscowDateAtUTC(dateStr: string, moscowHour: number): Date {
-  const utcHour = moscowHour - CONFIG.timezoneOffsetHours;
-  return new Date(`${dateStr}T${String(utcHour).padStart(2, "0")}:00:00.000Z`);
-}
+import { addDays, getBookingWindow, getOwnerDateString, getWorkingHours } from "./time-window.js";
 
 export function getAvailableSlots(meetingTypeId: string): Slot[] {
   const meetingType = storage.getMeetingType(meetingTypeId);
@@ -24,19 +13,17 @@ export function getAvailableSlots(meetingTypeId: string): Slot[] {
   const durationMs = meetingType.durationMinutes * 60 * 1000;
   const stepMs = CONFIG.slotStepMinutes * 60 * 1000;
   const now = new Date();
-  const todayStr = getMoscowDateString(now);
+  const window = getBookingWindow(now);
 
   const slots: Slot[] = [];
 
-  for (let dayOffset = 0; dayOffset < CONFIG.bookingWindowDays; dayOffset++) {
-    // Advance the date by dayOffset days
-    const baseDate = new Date(todayStr + "T00:00:00.000Z");
-    baseDate.setUTCDate(baseDate.getUTCDate() + dayOffset);
-    const dayStr = baseDate.toISOString().slice(0, 10);
-
-    // Working hours in UTC for this Moscow day
-    const workStart = moscowDateAtUTC(dayStr, CONFIG.workingHoursStart);
-    const workEnd = moscowDateAtUTC(dayStr, CONFIG.workingHoursEnd);
+  for (
+    let dayStart = window.start;
+    dayStart.getTime() < window.end.getTime();
+    dayStart = addDays(dayStart, 1)
+  ) {
+    // Working hours in UTC for this Owner timezone day
+    const { start: workStart, end: workEnd } = getWorkingHours(dayStart);
 
     let slotStart = new Date(workStart);
 

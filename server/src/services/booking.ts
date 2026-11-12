@@ -1,15 +1,14 @@
 import { Mutex } from "async-mutex";
 import { storage } from "../storage/in-memory.js";
-import { CONFIG, WORKING_START_UTC_HOUR, WORKING_END_UTC_HOUR } from "../config.js";
+import { CONFIG } from "../config.js";
 import type { Booking, BookingCreate } from "../types.js";
 import { ApiError } from "../types.js";
+import {
+  getWorkingHours,
+  isWithinBookingWindow,
+} from "./time-window.js";
 
 const bookingMutex = new Mutex();
-
-function getMoscowDateString(date: Date): string {
-  const moscowMs = date.getTime() + CONFIG.timezoneOffsetHours * 3600000;
-  return new Date(moscowMs).toISOString().slice(0, 10);
-}
 
 export async function createBooking(data: BookingCreate): Promise<Booking> {
   return bookingMutex.runExclusive(() => {
@@ -26,23 +25,13 @@ export async function createBooking(data: BookingCreate): Promise<Booking> {
       throw new ApiError(400, "Cannot book a slot in the past");
     }
 
-    // Validate: within booking window (14 days from today in Moscow time)
-    const todayStr = getMoscowDateString(now);
-    const windowStart = new Date(todayStr + "T00:00:00.000Z");
-    const windowEnd = new Date(windowStart);
-    windowEnd.setUTCDate(windowEnd.getUTCDate() + CONFIG.bookingWindowDays);
-    if (startTime.getTime() < windowStart.getTime() || startTime.getTime() >= windowEnd.getTime()) {
+    // Validate: within booking window (14 Moscow calendar days, starting today)
+    if (!isWithinBookingWindow(startTime, now)) {
       throw new ApiError(400, "Start time is outside the booking window");
     }
 
     // Validate: within working hours
-    const slotDayStr = getMoscowDateString(startTime);
-    const workStart = new Date(
-      `${slotDayStr}T${String(WORKING_START_UTC_HOUR).padStart(2, "0")}:00:00.000Z`,
-    );
-    const workEnd = new Date(
-      `${slotDayStr}T${String(WORKING_END_UTC_HOUR).padStart(2, "0")}:00:00.000Z`,
-    );
+    const { start: workStart, end: workEnd } = getWorkingHours(startTime);
     if (startTime.getTime() < workStart.getTime()) {
       throw new ApiError(400, "Start time is before working hours");
     }

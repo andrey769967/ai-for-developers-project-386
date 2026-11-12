@@ -44,6 +44,7 @@ npx vitest run tests/bookings.test.ts    # из server/
 - `server/src/config.ts` — спецификационные константы (часовой пояс Europe/Moscow UTC+3, рабочие часы 09:00-18:00, окно 14 дней, шаг слотов 15 мин). Менять бизнес-правила здесь.
 - `server/src/services/booking.ts` — создание бронирования под мьютексом. Вся логика пересечений и конкурентности здесь.
 - `server/src/services/availability.ts` — генерация слотов для окна в 14 дней.
+- `server/src/services/time-window.ts` — единый расчёт границ Owner timezone (Booking window, Working hours, конверсии дат). Арифметику пояса менять здесь.
 - `server/tests/helpers.ts` — хелперы `createTestApp()` и `createMeetingType()`. Тесты используют `inject()` Fastify (без реального порта).
 - `contract/main.tsp` — TypeSpec-контракт. Спецификационные константы задокументированы в строке `@doc`.
 

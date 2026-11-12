@@ -20,7 +20,3 @@ export const CONFIG = {
   // Путь к статике фронтенда (в Docker)
   staticDir: process.env.STATIC_DIR || "../web/dist",
 } as const;
-
-// Рабочие часы в UTC: 09:00 Moscow = 06:00 UTC, 18:00 Moscow = 15:00 UTC
-export const WORKING_START_UTC_HOUR = CONFIG.workingHoursStart - CONFIG.timezoneOffsetHours;
-export const WORKING_END_UTC_HOUR = CONFIG.workingHoursEnd - CONFIG.timezoneOffsetHours;
