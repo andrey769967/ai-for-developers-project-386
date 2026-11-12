@@ -50,7 +50,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** @description Delete a meeting type by id */
+        /** @description Delete a meeting type by id. Returns 409 if bookings exist for it. */
         delete: operations["MeetingTypes_remove"];
         options?: never;
         head?: never;
@@ -279,6 +279,15 @@ export interface operations {
             };
             /** @description Not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

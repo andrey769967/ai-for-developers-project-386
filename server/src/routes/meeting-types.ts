@@ -42,9 +42,12 @@ export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /api/meeting-types/:id
   app.delete("/meeting-types/:id", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const deleted = storage.deleteMeetingType(id);
-    if (!deleted) {
+    const result = storage.deleteMeetingTypeIfNoBookings(id);
+    if (result === "not_found") {
       throw new ApiError(404, "Meeting type not found");
+    }
+    if (result === "has_bookings") {
+      throw new ApiError(409, "Cannot delete a meeting type with existing bookings");
     }
     return reply.code(204).send();
   });

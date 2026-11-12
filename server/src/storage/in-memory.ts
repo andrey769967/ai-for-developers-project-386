@@ -24,16 +24,25 @@ class InMemoryStorage {
     return record;
   }
 
-  deleteMeetingType(id: string): boolean {
-    return this.meetingTypes.delete(id);
-  }
-
   // ─── Bookings ───
 
-  listBookings(): BookingRecord[] {
-    return Array.from(this.bookings.values()).sort(
-      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-    );
+  // Upcoming bookings: startTime >= now (GLOSSARY "Upcoming")
+  listUpcomingBookings(now: Date): BookingRecord[] {
+    return Array.from(this.bookings.values())
+      .filter((b) => new Date(b.startTime).getTime() >= now.getTime())
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  }
+
+  // Guard and delete in one synchronous step: while storage is in-memory and
+  // handlers run on a single event loop, no concurrent createBooking can slip
+  // between the booking check and the deletion (see ADR-0002).
+  deleteMeetingTypeIfNoBookings(id: string): "deleted" | "not_found" | "has_bookings" {
+    if (!this.meetingTypes.has(id)) return "not_found";
+    for (const booking of this.bookings.values()) {
+      if (booking.meetingTypeId === id) return "has_bookings";
+    }
+    this.meetingTypes.delete(id);
+    return "deleted";
   }
 
   createBooking(data: Omit<BookingRecord, "id">): BookingRecord {

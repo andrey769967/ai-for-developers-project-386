@@ -8,11 +8,20 @@ type MeetingType = components["schemas"]["MeetingType"];
 
 const DURATION_OPTIONS = [15, 30, 45, 60];
 
+// openapi-fetch throws plain {message} objects, not Error instances
+function apiErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === "object" && err !== null && "message" in err) {
+    return String((err as { message: unknown }).message);
+  }
+  return fallback;
+}
+
 export function AdminPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState(30);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: meetingTypes } = useQuery({
@@ -47,7 +56,7 @@ export function AdminPage() {
       setError(null);
     },
     onError: (err: unknown) => {
-      setError(err instanceof Error ? err.message : "Ошибка создания");
+      setError(apiErrorMessage(err, "Ошибка создания"));
     },
   });
 
@@ -58,8 +67,15 @@ export function AdminPage() {
       });
       if (error) throw error;
     },
+    onMutate: () => {
+      setDeleteError(null);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meeting-types"] });
+      setDeleteError(null);
+    },
+    onError: (err: unknown) => {
+      setDeleteError(apiErrorMessage(err, "Ошибка удаления"));
     },
   });
 
@@ -131,6 +147,7 @@ export function AdminPage() {
       {/* Meeting types list */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Типы встреч</h2>
+        {deleteError && <div className="bg-red-50 text-red-600 text-sm rounded-lg p-3 mb-3">{deleteError}</div>}
         {meetingTypes && meetingTypes.length > 0 ? (
           <div className="space-y-2">
             {meetingTypes.map((mt: MeetingType) => (
@@ -147,7 +164,8 @@ export function AdminPage() {
                   <span className="text-sm text-indigo-600 font-medium">{mt.durationMinutes} мин</span>
                   <button
                     onClick={() => deleteMutation.mutate(mt.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    disabled={deleteMutation.isPending}
+                    className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
                     title="Удалить"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

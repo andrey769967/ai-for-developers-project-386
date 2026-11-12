@@ -93,6 +93,24 @@ describe("DELETE /api/meeting-types/:id", () => {
     expect(res.statusCode).toBe(404);
     expect(JSON.parse(res.payload)).toEqual({ message: "Meeting type not found" });
   });
+
+  it("returns 409 when bookings exist for the meeting type", async () => {
+    app = await createTestApp();
+    const mt = await createMeetingType(app, "Test", "desc", 15);
+    const slotsRes = await app.inject({ method: "GET", url: `/api/meeting-types/${mt.id}/slots` });
+    const slots = JSON.parse(slotsRes.payload);
+    await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime },
+    });
+
+    const res = await app.inject({ method: "DELETE", url: `/api/meeting-types/${mt.id}` });
+    expect(res.statusCode).toBe(409);
+    expect(JSON.parse(res.payload)).toEqual({
+      message: "Cannot delete a meeting type with existing bookings",
+    });
+  });
 });
 
 describe("GET /api/meeting-types/:id/slots", () => {

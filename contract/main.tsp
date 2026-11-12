@@ -87,9 +87,9 @@ interface MeetingTypes {
   @doc("Create a new meeting type")
   @post create(@body body: MeetingTypeCreate): MeetingTypeCreated | BadRequest;
 
-  @doc("Delete a meeting type by id")
+  @doc("Delete a meeting type by id. Returns 409 if bookings exist for it.")
   @route("/{id}")
-  @delete remove(@path id: string): NoContentResponse | NotFound;
+  @delete remove(@path id: string): NoContentResponse | NotFound | Conflict;
 
   @doc("Get available slots for a meeting type for the next 14 days")
   @route("/{id}/slots")
