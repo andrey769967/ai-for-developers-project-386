@@ -61,3 +61,17 @@ npx vitest run tests/bookings.test.ts    # из server/
 ## Зависимости (запиннены)
 
 Экосистема TypeSpec — единая версия `1.18.0` (`@typespec/compiler`, `@typespec/openapi3`, `@typespec/http`). `@typespec/rest` — `0.88.0`. Vite 8, React 19, Fastify 5.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues in `andrey769967/ai-for-developers-project-386`, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical triage roles, each mapped to a label string of the same name. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` plus `docs/adr/` at the repo root. See `docs/agents/domain.md`.
