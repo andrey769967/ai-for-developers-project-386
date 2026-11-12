@@ -2,12 +2,7 @@ import { CONFIG, WORKING_START_UTC_HOUR, WORKING_END_UTC_HOUR } from "../config.
 import { storage } from "../storage/in-memory.js";
 import type { Slot } from "../types.js";
 import { ApiError } from "../types.js";
-
-// Get the Moscow-local date string (YYYY-MM-DD) for a given UTC Date
-function getMoscowDateString(date: Date): string {
-  const moscowMs = date.getTime() + CONFIG.timezoneOffsetHours * 3600000;
-  return new Date(moscowMs).toISOString().slice(0, 10);
-}
+import { getBookingWindow } from "./booking-window.js";
 
 // Build a UTC Date for a specific Moscow date at a specific Moscow hour
 function moscowDateAtUTC(dateStr: string, moscowHour: number): Date {
@@ -24,13 +19,13 @@ export function getAvailableSlots(meetingTypeId: string): Slot[] {
   const durationMs = meetingType.durationMinutes * 60 * 1000;
   const stepMs = CONFIG.slotStepMinutes * 60 * 1000;
   const now = new Date();
-  const todayStr = getMoscowDateString(now);
+  const bookingWindow = getBookingWindow(now);
 
   const slots: Slot[] = [];
 
   for (let dayOffset = 0; dayOffset < CONFIG.bookingWindowDays; dayOffset++) {
     // Advance the date by dayOffset days
-    const baseDate = new Date(todayStr + "T00:00:00.000Z");
+    const baseDate = new Date(`${bookingWindow.firstOwnerDate}T00:00:00.000Z`);
     baseDate.setUTCDate(baseDate.getUTCDate() + dayOffset);
     const dayStr = baseDate.toISOString().slice(0, 10);
 
@@ -44,7 +39,7 @@ export function getAvailableSlots(meetingTypeId: string): Slot[] {
       const slotEnd = new Date(slotStart.getTime() + durationMs);
 
       // Skip past slots
-      if (slotStart.getTime() >= now.getTime()) {
+      if (slotStart.getTime() >= now.getTime() && slotStart.getTime() < bookingWindow.end.getTime()) {
         if (!storage.hasOverlap(slotStart.toISOString(), slotEnd.toISOString())) {
           slots.push({
             startTime: slotStart.toISOString(),
