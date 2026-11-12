@@ -1,0 +1,24 @@
+{
+  "name": "@call-booking/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "fastify": "^5.12.0",
+    "@fastify/static": "^10.1.0",
+    "@fastify/cors": "^11.4.0",
+    "async-mutex": "^0.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "tsx": "^4.23.0",
+    "vitest": "^5.1.0",
+    "@types/node": "^26.0.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "call-booking-app",
+  "private": true,
+  "workspaces": [
+    "contract",
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "generate": "npm run build:contract && npm run generate:client -w web",
+    "build:contract": "npm run build -w contract",
+    "build:server": "npm run build -w server",
+    "build:web": "npm run build -w web",
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "test": "npm run test -w server --if-present",
+    "build": "npm run build:contract && npm run generate:client -w web && npm run build:web && npm run build:server"
+  }
+}

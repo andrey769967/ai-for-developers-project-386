@@ -1,0 +1,25 @@
+# Зависимости
+node_modules/
+**/node_modules/
+
+# Артефакты сборки и генерации
+**/dist/
+**/tsp-output/
+**/.vite/
+coverage/
+*.tsbuildinfo
+
+# Логи
+*.log
+npm-debug.log*
+
+# Переменные окружения
+.env
+.env.*
+!.env.example
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

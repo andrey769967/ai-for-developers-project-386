@@ -1,0 +1,17 @@
+{
+  "name": "@call-booking/contract",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "tsp compile .",
+    "build": "tsp compile ."
+  },
+  "devDependencies": {
+    "@typespec/compiler": "1.18.0",
+    "@typespec/openapi3": "1.18.0",
+    "@typespec/rest": "0.88.0",
+    "@typespec/http": "1.18.0",
+    "openapi-typescript": "^7.13.0"
+  }
+}

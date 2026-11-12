@@ -1,0 +1,9 @@
+node_modules
+**/node_modules
+**/dist
+**/tsp-output
+.git
+*.md
+tests
+**/*.test.ts
+vitest.config.ts
