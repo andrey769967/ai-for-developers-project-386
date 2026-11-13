@@ -35,8 +35,8 @@ jobs:
       - name: Установка зависимостей
         run: npm ci
 
-      - name: Тесты
-        run: npm test
+      - name: Браузер для сквозного сценария
+        run: npx playwright install --with-deps chromium
 
-      - name: Сборка (contract → типы → web → server)
-        run: npm run build
+      - name: Все проверки: тесты, сборка, браузерный сценарий
+        run: npm run check
