@@ -10,6 +10,7 @@ export type MeetingTypeCreate = Schemas["MeetingTypeCreate"];
 export type Booking = Schemas["Booking"];
 export type BookingCreate = Schemas["BookingCreate"];
 export type Slot = Schemas["Slot"];
+export type BookingWindow = Schemas["BookingWindow"];
 type ApiErrorBody = Schemas["ApiError"];
 
 // HTTP-ошибка уровня приложения: тело следует контрактной модели ApiError,

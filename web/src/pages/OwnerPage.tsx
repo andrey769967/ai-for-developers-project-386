@@ -3,10 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "../lib/api/client";
 import type { components } from "../lib/api/schema";
 import { BookingList } from "../components/BookingList";
+import {
+  DURATION_STEP_MINUTES,
+  MAX_DURATION_MINUTES,
+  MIN_DURATION_MINUTES,
+  parseDurationMinutes,
+} from "../lib/duration";
 
 type MeetingType = components["schemas"]["MeetingType"];
-
-const DURATION_OPTIONS = [15, 30, 45, 60];
 
 // openapi-fetch throws plain {message} objects, not Error instances
 function apiErrorMessage(err: unknown, fallback: string): string {
@@ -19,7 +23,7 @@ function apiErrorMessage(err: unknown, fallback: string): string {
 export function OwnerPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState("30");
   const [error, setError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -52,7 +56,7 @@ export function OwnerPage() {
       queryClient.invalidateQueries({ queryKey: ["meeting-types"] });
       setName("");
       setDescription("");
-      setDuration(30);
+      setDuration("30");
       setError(null);
     },
     onError: (err: unknown) => {
@@ -85,7 +89,14 @@ export function OwnerPage() {
       setError("Заполните все поля");
       return;
     }
-    createMutation.mutate({ name: name.trim(), description: description.trim(), durationMinutes: duration });
+
+    const parsed = parseDurationMinutes(duration);
+    if (parsed.error || parsed.minutes === null) {
+      setError(parsed.error);
+      return;
+    }
+
+    createMutation.mutate({ name: name.trim(), description: description.trim(), durationMinutes: parsed.minutes });
   }
 
   return (
@@ -115,23 +126,23 @@ export function OwnerPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Длительность</label>
-            <div className="flex gap-2">
-              {DURATION_OPTIONS.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => setDuration(d)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                    duration === d
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:border-indigo-400"
-                  }`}
-                >
-                  {d} мин
-                </button>
-              ))}
+            <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">Длительность</label>
+            <div className="flex items-center gap-2">
+              <input
+                id="duration"
+                type="text"
+                inputMode="numeric"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                placeholder="30"
+              />
+              <span className="text-sm text-gray-500">мин</span>
             </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Кратна {DURATION_STEP_MINUTES} минутам, от {MIN_DURATION_MINUTES} до {MAX_DURATION_MINUTES}:
+              например, 15, 30, 60, 90, 120.
+            </p>
           </div>
           {error && <div className="bg-red-50 text-red-600 text-sm rounded-lg p-3">{error}</div>}
           <button

@@ -11,6 +11,7 @@ npm install                              # установить все зави�
 npm run build                            # полная сборка: contract -> типы клиента -> web -> server
 npm run generate                         # TypeSpec -> OpenAPI + типы фронтенда
 npm run test                             # vitest (только server)
+npm run check                            # все проверки: тесты, сборка и браузерный сценарий
 npm run dev:server                       # Fastify на :3000 (tsx watch)
 npm run dev:web                          # Vite на :5173, проксирует /api -> :3000
 docker build -t call-booking .           # multi-stage: собирает всё, раздаёт на :3000
@@ -21,6 +22,8 @@ docker build -t call-booking .           # multi-stage: собирает всё,
 ```
 npx vitest run tests/bookings.test.ts    # из server/
 ```
+
+`npm run check` — единственная команда, которая прогоняет все проверки локально: тесты сервера, полную сборку и сквозной сценарий гостя на Playwright против настоящего сервера, без подмены ответов API. CI запускает её же, поэтому локальный и CI-прогоны не расходятся.
 
 ## Цепочка генерации кода (порядок важен)
 

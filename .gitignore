@@ -13,6 +13,11 @@ coverage/
 *.log
 npm-debug.log*
 
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
 # Переменные окружения
 .env
 .env.*

@@ -15,12 +15,12 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
     const body = request.body as Partial<BookingCreate>;
 
     if (!body?.meetingTypeId || !body?.guestName || !body?.guestEmail || !body?.startTime) {
-      throw new ApiError(400, "meetingTypeId, guestName, guestEmail and startTime are required");
+      throw new ApiError(400, "Укажите тип встречи, имя, email и время начала");
     }
 
     const startTime = new Date(body.startTime);
     if (isNaN(startTime.getTime())) {
-      throw new ApiError(400, "startTime must be a valid ISO 8601 date");
+      throw new ApiError(400, "Время начала должно быть датой в формате ISO 8601");
     }
 
     const data: BookingCreate = {

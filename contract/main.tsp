@@ -1,11 +1,13 @@
 import "@typespec/http";
 import "@typespec/rest";
+import "@typespec/openapi";
 import "@typespec/openapi3";
 
 using TypeSpec.Http;
+using TypeSpec.OpenAPI;
 
 @service(#{title: "Call Booking API"})
-@doc("Call Booking API. Spec constants: timezone=Europe/Moscow UTC+3, working hours 09:00-18:00, booking window 14 days from today, slot step 15 minutes, slot duration = meeting type duration (multiple of 15), back-to-back allowed, overlaps forbidden across all types, owner is predefined, no auth.")
+@doc("Call Booking API. Spec constants: timezone=Europe/Moscow UTC+3, working hours 09:00-18:00, booking window 14 days from today, slot step 15 minutes, slot duration = meeting type duration (multiple of 15, 15-540 minutes), back-to-back allowed, overlaps forbidden across all types, owner is predefined, no auth.")
 namespace CallBooking;
 
 @doc("Meeting type")
@@ -13,6 +15,10 @@ model MeetingType {
   id: string;
   name: string;
   description: string;
+  @doc("Duration in minutes: multiple of 15, at least 15, at most 540 (the Owner working day 09:00-18:00)")
+  @minValue(15)
+  @maxValue(540)
+  @extension("multipleOf", 15)
   durationMinutes: int32;
 }
 
@@ -20,6 +26,10 @@ model MeetingType {
 model MeetingTypeCreate {
   name: string;
   description: string;
+  @doc("Duration in minutes: multiple of 15, at least 15, at most 540 (the Owner working day 09:00-18:00)")
+  @minValue(15)
+  @maxValue(540)
+  @extension("multipleOf", 15)
   durationMinutes: int32;
 }
 
@@ -69,6 +79,17 @@ model Conflict is ConflictResponse {
   @body body: ApiError;
 }
 
+@doc("Health status")
+model HealthStatus {
+  status: string;
+}
+
+@doc("Booking window boundaries in UTC")
+model BookingWindow {
+  startTime: utcDateTime;
+  endTime: utcDateTime;
+}
+
 @doc("Meeting type created")
 model MeetingTypeCreated is CreatedResponse {
   @body body: MeetingType;
@@ -103,4 +124,16 @@ interface Bookings {
 
   @doc("Create a booking. Returns 409 on overlap with an existing Booking.")
   @post create(@body body: BookingCreate): BookingCreated | BadRequest | NotFound | Conflict;
+}
+
+@route("/health")
+interface Health {
+  @doc("Liveness probe. Answers without touching storage and without side effects.")
+  @get check(): HealthStatus;
+}
+
+@route("/api/booking-window")
+interface BookingWindowApi {
+  @doc("Current Booking window: 14 Owner timezone calendar days, including today")
+  @get read(): BookingWindow;
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { createTestApp, createMeetingType } from "./helpers.js";
+import { storage } from "../src/storage/in-memory.js";
 import { getAvailableSlots } from "../src/services/availability.js";
 import {
   getBookingWindow,
@@ -109,6 +110,30 @@ describe("createBooking Booking window", () => {
     });
 
     expect(response.statusCode).toBe(400);
-    expect(JSON.parse(response.payload).message).toBe("Start time is before working hours");
+    expect(JSON.parse(response.payload).message).toBe("Время начала раньше рабочих часов");
+  });
+});
+
+describe("GET /api/booking-window", () => {
+  it("returns the current Booking window boundaries", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-13T12:00:00.000Z"));
+    app = await createTestApp();
+
+    const res = await app.inject({ method: "GET", url: "/api/booking-window" });
+
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.payload)).toEqual({
+      startTime: "2026-11-12T21:00:00.000Z",
+      endTime: "2026-11-26T21:00:00.000Z",
+    });
+  });
+
+  it("does not touch storage", async () => {
+    app = await createTestApp();
+
+    await app.inject({ method: "GET", url: "/api/booking-window" });
+
+    expect(storage.listMeetingTypes()).toEqual([]);
   });
 });
