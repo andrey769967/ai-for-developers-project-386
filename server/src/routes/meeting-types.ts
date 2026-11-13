@@ -3,7 +3,7 @@ import { storage } from "../storage/in-memory.js";
 import { getAvailableSlots } from "../services/availability.js";
 import { ApiError } from "../types.js";
 import type { MeetingTypeCreate } from "../types.js";
-import { CONFIG } from "../config.js";
+import { CONFIG, MAX_DURATION_MINUTES } from "../config.js";
 
 export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
   // GET /api/meeting-types - list all
@@ -21,6 +21,13 @@ export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
 
     if (!Number.isInteger(body.durationMinutes) || body.durationMinutes < CONFIG.minDurationMinutes) {
       throw new ApiError(400, `durationMinutes must be an integer >= ${CONFIG.minDurationMinutes}`);
+    }
+
+    if (body.durationMinutes > MAX_DURATION_MINUTES) {
+      throw new ApiError(
+        400,
+        `durationMinutes must not exceed ${MAX_DURATION_MINUTES} (the Owner working day)`,
+      );
     }
 
     if (body.durationMinutes % CONFIG.slotStepMinutes !== 0) {

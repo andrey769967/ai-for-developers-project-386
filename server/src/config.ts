@@ -22,6 +22,11 @@ export const CONFIG = {
 
 const DEFAULT_PORT = 3000;
 
+// Booking обязан поместиться в Working hours целиком, поэтому Duration
+// не может быть больше длины рабочего дня. При смене часов лимит меняется сам.
+export const MAX_DURATION_MINUTES =
+  (CONFIG.workingHoursEnd - CONFIG.workingHoursStart) * 60;
+
 // Порт берётся из окружения, чтобы контейнер и платформа могли его переопределить.
 // Некорректное значение не роняет сервер: используется дефолт.
 export function resolvePort(env: NodeJS.ProcessEnv = process.env): number {
