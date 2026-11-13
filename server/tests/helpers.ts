@@ -1,30 +1,16 @@
-import Fastify from "fastify";
-import { meetingTypesRoutes } from "../src/routes/meeting-types.js";
-import { bookingsRoutes } from "../src/routes/bookings.js";
+import type { FastifyInstance } from "fastify";
+import { buildApp } from "../src/app.js";
 import { storage } from "../src/storage/in-memory.js";
-import { ApiError } from "../src/types.js";
 
-export async function createTestApp() {
+// Tests build the app through the same factory as production, minus seeding and
+// static serving, so the composition under test is the one that ships.
+export async function createTestApp(): Promise<FastifyInstance> {
   storage.reset();
-
-  const app = Fastify({ logger: false });
-
-  app.setErrorHandler((err, _request, reply) => {
-    if (err instanceof ApiError) {
-      reply.code(err.statusCode).send({ message: err.message });
-      return;
-    }
-    reply.code(500).send({ message: "Internal Server Error" });
-  });
-
-  await app.register(meetingTypesRoutes, { prefix: "/api" });
-  await app.register(bookingsRoutes, { prefix: "/api" });
-
-  return app;
+  return buildApp({ logger: false, seed: false });
 }
 
 export async function createMeetingType(
-  app: Fastify.FastifyInstance,
+  app: FastifyInstance,
   name = "Test Meeting",
   description = "Test description",
   durationMinutes = 30,
@@ -34,5 +20,6 @@ export async function createMeetingType(
     url: "/api/meeting-types",
     payload: { name, description, durationMinutes },
   });
+
   return JSON.parse(res.payload);
 }
