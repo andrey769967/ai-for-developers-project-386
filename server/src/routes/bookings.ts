@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { storage } from "../storage/in-memory.js";
 import { createBooking } from "../services/booking.js";
 import { ApiError } from "../types.js";
+import type { BookingCreate } from "../types.js";
 
 export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
   // GET /api/bookings - list Upcoming bookings (startTime >= now)
@@ -11,12 +12,7 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
 
   // POST /api/bookings - create a booking
   app.post("/bookings", async (request, reply) => {
-    const body = request.body as {
-      meetingTypeId?: string;
-      guestName?: string;
-      guestEmail?: string;
-      startTime?: string;
-    };
+    const body = request.body as Partial<BookingCreate>;
 
     if (!body?.meetingTypeId || !body?.guestName || !body?.guestEmail || !body?.startTime) {
       throw new ApiError(400, "meetingTypeId, guestName, guestEmail and startTime are required");
@@ -27,12 +23,14 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
       throw new ApiError(400, "startTime must be a valid ISO 8601 date");
     }
 
-    const booking = await createBooking({
+    const data: BookingCreate = {
       meetingTypeId: body.meetingTypeId,
       guestName: body.guestName,
       guestEmail: body.guestEmail,
       startTime: startTime.toISOString(),
-    });
+    };
+
+    const booking = await createBooking(data);
 
     return reply.code(201).send(booking);
   });

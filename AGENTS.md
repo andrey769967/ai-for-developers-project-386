@@ -25,13 +25,14 @@ npx vitest run tests/bookings.test.ts    # из server/
 ## Цепочка генерации кода (порядок важен)
 
 1. `tsp compile .` (в `contract/`) генерирует `contract/tsp-output/@typespec/openapi3/openapi.yaml`
-2. `openapi-typescript` читает этот YAML, пишет `web/src/lib/api/schema.d.ts`
-3. `tsc -b && vite build` (в `web/`) собирает фронтенд с использованием сгенерированных типов
-4. `tsc` (в `server/`) собирает бекенд
+2. `openapi-typescript` читает этот YAML, пишет `web/src/lib/api/schema.d.ts` (типы клиента)
+3. `openapi-typescript` читает тот же YAML, пишет `server/src/api-schema.d.ts` (модели API сервера)
+4. `tsc -b && vite build` (в `web/`) собирает фронтенд с использованием сгенерированных типов
+5. `tsc` (в `server/`) собирает бекенд; `server/src/types.ts` — алиасы на сгенерированные модели
 
-`web/src/lib/api/schema.d.ts` и `contract/tsp-output/` — сгенерированные файлы. Не редактировать вручную. Корневой `npm run build` выполняет все четыре шага по порядку.
+`web/src/lib/api/schema.d.ts`, `server/src/api-schema.d.ts` и `contract/tsp-output/` — сгенерированные файлы. Не редактировать вручную. Корневой `npm run build` выполняет все пять шагов по порядку (через `npm run generate`).
 
-Бекенд **не** генерируется из TypeSpec (нет эмиттера для Fastify). Написан вручную по контракту, проверяется тестами.
+Бекенд **не** генерируется из TypeSpec (нет эмиттера для Fastify): маршруты и логика написаны вручную и проверяются тестами. Модели API генерируются и используются сервером, поэтому расхождение моделей с контрактом ломает `tsc` на шаге `build:server`.
 
 ## Архитектура
 
@@ -42,7 +43,8 @@ npx vitest run tests/bookings.test.ts    # из server/
 ## Ключевые файлы
 
 - `server/src/config.ts` — спецификационные константы (часовой пояс Europe/Moscow UTC+3, рабочие часы 09:00-18:00, окно 14 дней, шаг слотов 15 мин). Менять бизнес-правила здесь.
-- `server/src/services/booking.ts` — создание бронирования под мьютексом. Вся логика пересечений и конкурентности здесь.
+- `server/src/types.ts` — алиасы на сгенерированные модели API плюс ручной класс `ApiError`. Не дублировать модели руками.
+- `server/src/services/booking.ts` — создание записи под мьютексом. Вся логика пересечений и конкурентности здесь.
 - `server/src/services/availability.ts` — генерация слотов для окна в 14 дней.
 - `server/src/services/time-window.ts` — единый расчёт границ Owner timezone (Booking window, Working hours, конверсии дат). Арифметику пояса менять здесь.
 - `server/tests/helpers.ts` — хелперы `createTestApp()` и `createMeetingType()`. Тесты используют `inject()` Fastify (без реального порта).
@@ -54,7 +56,7 @@ npx vitest run tests/bookings.test.ts    # из server/
 - **Синтаксис TypeSpec**: `@service` использует синтаксис `#{title: "..."}` (hash-brace), а не обычный `{}`.
 - **STATIC_DIR env**: в production сервер ищет ассеты фронтенда по `STATIC_DIR` (абсолютный путь). В Docker: `/app/web/dist`. Для локального production-запуска укажите абсолютный путь, иначе разрешается относительно `server/dist/`.
 - **Vite proxy**: dev-режим работает на двух серверах. Vite (:5173) проксирует `/api` на Fastify (:3000). Оба должны быть запущены.
-- **Конкурентность**: `async-mutex` оборачивает проверку и создание бронирования. Тесты проверяют: 2 и 5 одновременных запросов на один слот дают ровно 1 успех.
+- **Конкурентность**: `async-mutex` оборачивает проверку и создание записи. Тесты проверяют: 2 и 5 одновременных запросов на один слот дают ровно 1 успех.
 - **Без базы данных**: данные хранятся в памяти процесса. Это не баг — ограничение описано в README.md.
 - **Путь вывода TypeSpec**: OpenAPI YAML попадает в `contract/tsp-output/@typespec/openapi3/openapi.yaml` (стандартная структура вывода TypeSpec).
 - **Кодировка файла задачи**: `Описание задачи.txt` в кодировке Windows-1251. Читать в этой кодировке, не UTF-8.

@@ -11,7 +11,6 @@
     "@typespec/compiler": "1.18.0",
     "@typespec/openapi3": "1.18.0",
     "@typespec/rest": "0.88.0",
-    "@typespec/http": "1.18.0",
-    "openapi-typescript": "^7.13.0"
+    "@typespec/http": "1.18.0"
   }
 }

@@ -91,7 +91,7 @@ export function SlotCalendar({ slots, selectedSlot, onSelect, timezone }: Props)
       {/* Left panel: calendar grid */}
       <div className="w-[280px] flex-shrink-0 border border-gray-200 rounded-xl overflow-hidden bg-white flex flex-col">
         <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          Календарь
+          Даты
         </div>
         <div className="grid grid-cols-7 border-b border-gray-200">
           {WEEKDAY_LABELS.map((label) => (

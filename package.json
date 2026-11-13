@@ -7,13 +7,13 @@
     "web"
   ],
   "scripts": {
-    "generate": "npm run build:contract && npm run generate:client -w web",
+    "generate": "npm run build:contract && npm run generate:client -w web && npm run generate:types -w server",
     "build:contract": "npm run build -w contract",
     "build:server": "npm run build -w server",
     "build:web": "npm run build -w web",
     "dev:server": "npm run dev -w server",
     "dev:web": "npm run dev -w web",
     "test": "npm run test -w server --if-present",
-    "build": "npm run build:contract && npm run generate:client -w web && npm run build:web && npm run build:server"
+    "build": "npm run generate && npm run build:web && npm run build:server"
   }
 }

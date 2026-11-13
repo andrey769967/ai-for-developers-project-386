@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { storage } from "../storage/in-memory.js";
 import { getAvailableSlots } from "../services/availability.js";
 import { ApiError } from "../types.js";
+import type { MeetingTypeCreate } from "../types.js";
 import { CONFIG } from "../config.js";
 
 export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
@@ -12,11 +13,7 @@ export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
 
   // POST /api/meeting-types - create
   app.post("/meeting-types", async (request, reply) => {
-    const body = request.body as {
-      name?: string;
-      description?: string;
-      durationMinutes?: number;
-    };
+    const body = request.body as Partial<MeetingTypeCreate>;
 
     if (!body?.name || !body?.description || !body?.durationMinutes) {
       throw new ApiError(400, "name, description and durationMinutes are required");
@@ -30,11 +27,13 @@ export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
       throw new ApiError(400, `durationMinutes must be a multiple of ${CONFIG.slotStepMinutes}`);
     }
 
-    const record = storage.createMeetingType({
+    const data: MeetingTypeCreate = {
       name: body.name,
       description: body.description,
       durationMinutes: body.durationMinutes,
-    });
+    };
+
+    const record = storage.createMeetingType(data);
 
     return reply.code(201).send(record);
   });
