@@ -1,0 +1,17 @@
+# Публичный стенд на Render Free.
+# Сервис собирается из существующего Dockerfile, слушает порт из PORT,
+# который Render подставляет сам, и проверяется по /health.
+services:
+  - type: web
+    name: call-booking
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: STATIC_DIR
+        value: /app/web/dist
