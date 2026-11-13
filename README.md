@@ -39,15 +39,35 @@
 
 ## Запуск через Docker
 
+Нужен только Docker с плагином Compose. Ни Node.js, ни база данных, ни аккаунты,
+ни банковская карта не требуются.
+
 ```bash
-docker build -t call-booking .
-docker run -p 3000:3000 call-booking
+docker compose up --build
 ```
 
 Приложение доступно на http://localhost:3000
 
 - `/` - страница гостя (выбор типа встречи, календарь, запись)
+- `/health` - проверка живости, отвечает `{"status":"ok"}`
 - Угол сверху справа: переключение на календарь владельца
+
+Остановить: `Ctrl+C`, затем `docker compose down`.
+
+Логи: `docker compose logs -f`.
+
+Другой порт: `PORT=8080 docker compose up --build`. В PowerShell сначала
+задайте переменную: `$env:PORT = "8080"`.
+
+Данные живут в памяти контейнера: `docker compose restart` сбрасывает все типы
+встреч и записи и заново создаёт три типа встреч по умолчанию.
+
+Без Compose:
+
+```bash
+docker build -t call-booking .
+docker run --rm -p 3000:3000 call-booking
+```
 
 ## Локальная разработка
 
