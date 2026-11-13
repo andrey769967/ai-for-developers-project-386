@@ -94,14 +94,14 @@ describe("createBooking validation rules", () => {
     fakeNow();
     const res = await book("2026-11-13T11:45:00.000Z");
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.payload)).toEqual({ message: "Cannot book a slot in the past" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Нельзя записаться на прошедшее время" });
   });
 
   it("rejects a start time beyond the Booking window", async () => {
     fakeNow();
     const res = await book("2026-12-15T09:00:00.000Z");
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is outside the booking window" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Время начала вне окна записи" });
   });
 
   it("allows a booking on the last day of the Booking window", async () => {
@@ -116,7 +116,7 @@ describe("createBooking validation rules", () => {
     // 00:00 Moscow on Nov 27 is the exclusive window end
     const res = await book("2026-11-26T21:00:00.000Z");
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is outside the booking window" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Время начала вне окна записи" });
   });
 
   it("rejects a start time before Working hours", async () => {
@@ -124,7 +124,7 @@ describe("createBooking validation rules", () => {
     // 07:00 Moscow on Nov 16
     const res = await book("2026-11-16T04:00:00.000Z");
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is before working hours" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Время начала раньше рабочих часов" });
   });
 
   it("rejects a booking ending after Working hours", async () => {
@@ -132,7 +132,7 @@ describe("createBooking validation rules", () => {
     // 17:45 Moscow + 30 min ends at 18:15, past the 18:00 boundary
     const res = await book("2026-11-16T14:45:00.000Z", 30);
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.payload)).toEqual({ message: "End time exceeds working hours" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Встреча не помещается в рабочие часы" });
   });
 
   it("allows a booking ending exactly at the Working hours end", async () => {
@@ -147,7 +147,7 @@ describe("createBooking validation rules", () => {
     // 12:10 Moscow is not a multiple of 15 minutes from 09:00
     const res = await book("2026-11-16T09:10:00.000Z");
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.payload)).toEqual({ message: "Start time is not aligned to slot step" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Время начала не совпадает с сеткой слотов" });
   });
 });
 
@@ -190,7 +190,7 @@ describe("POST /api/bookings", () => {
       },
     });
     expect(res.statusCode).toBe(404);
-    expect(JSON.parse(res.payload)).toEqual({ message: "Meeting type not found" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Тип встречи не найден" });
   });
 
   it("rejects missing fields", async () => {
@@ -202,7 +202,7 @@ describe("POST /api/bookings", () => {
     });
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.payload)).toEqual({
-      message: "meetingTypeId, guestName, guestEmail and startTime are required",
+      message: "Укажите тип встречи, имя, email и время начала",
     });
   });
 
@@ -226,7 +226,7 @@ describe("POST /api/bookings", () => {
       payload: { meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime },
     });
     expect(res2.statusCode).toBe(409);
-    expect(JSON.parse(res2.payload)).toEqual({ message: "This time slot is already booked" });
+    expect(JSON.parse(res2.payload)).toEqual({ message: "Это время уже занято, выберите другое" });
   });
 
   it("rejects overlapping slots with different meeting types", async () => {
