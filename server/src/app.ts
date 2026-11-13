@@ -18,7 +18,8 @@ export interface BuildAppOptions {
 // Single composition of the application: production entrypoint and tests use this
 // same function, so tests exercise the composition that actually runs.
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
-  const app = Fastify({ logger: options.logger ?? false });
+  const { logger = false, seed = true, staticDir } = options;
+  const app = Fastify({ logger });
 
   // CORS is only needed for the Vite dev server. In production the frontend is
   // served from the same origin as the API.
@@ -41,24 +42,29 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(meetingTypesRoutes, { prefix: "/api" });
   await app.register(bookingsRoutes, { prefix: "/api" });
 
-  if (options.seed !== false) {
+  if (seed) {
     storage.seed();
   }
 
-  if (options.staticDir && existsSync(options.staticDir)) {
+  if (staticDir && existsSync(staticDir)) {
     await app.register(fastifyStatic, {
-      root: options.staticDir,
+      root: staticDir,
       prefix: "/",
       wildcard: false,
     });
 
     app.setNotFoundHandler((request, reply) => {
-      if (request.url.startsWith("/api/") || request.url === "/health") {
+      if (request.url.startsWith("/api/") || request.url.startsWith("/health")) {
         reply.code(404).send({ message: "Not found" });
         return;
       }
       reply.sendFile("index.html");
     });
+  } else if (staticDir) {
+    // In production a missing build is a configuration mistake, not a dev setup.
+    if (process.env.NODE_ENV === "production") {
+      app.log.warn(`Static directory not found: ${staticDir}. Serving API only.`);
+    }
   }
 
   return app;
