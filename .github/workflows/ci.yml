@@ -38,5 +38,5 @@ jobs:
       - name: Браузер для сквозного сценария
         run: npx playwright install --with-deps chromium
 
-      - name: Все проверки: тесты, сборка, браузерный сценарий
+      - name: "Все проверки: тесты, сборка, браузерный сценарий"
         run: npm run check
