@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { MeetingType, Booking } from "../types.js";
 
-interface MeetingTypeRecord extends MeetingType {}
-interface BookingRecord extends Booking {}
+type MeetingTypeRecord = MeetingType;
+type BookingRecord = Booking;
 
 class InMemoryStorage {
   private meetingTypes = new Map<string, MeetingTypeRecord>();
