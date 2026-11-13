@@ -255,6 +255,55 @@ describe("POST /api/bookings", () => {
     expect(res2.statusCode).toBe(409);
   });
 
+  it("rejects a 30-minute booking that starts inside a 60-minute booking", async () => {
+    fakeNow();
+    app = await createTestApp();
+    const long = await createMeetingType(app, "Long", "60 min", 60);
+    const short = await createMeetingType(app, "Short", "30 min", 30);
+
+    // 10:00-11:00 Moscow on 16 Nov
+    const first = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: long.id,
+        guestName: "A",
+        guestEmail: "a@test.com",
+        startTime: "2026-11-16T07:00:00.000Z",
+      },
+    });
+    expect(first.statusCode).toBe(201);
+
+    // 10:30-11:00 Moscow, another MeetingType: partial overlap with 10:00-11:00
+    const overlap = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: short.id,
+        guestName: "B",
+        guestEmail: "b@test.com",
+        startTime: "2026-11-16T07:30:00.000Z",
+      },
+    });
+    expect(overlap.statusCode).toBe(409);
+    expect(JSON.parse(overlap.payload)).toEqual({
+      message: "Это время уже занято, выберите другое",
+    });
+
+    // 11:00 starts exactly when the 60-minute Booking ends
+    const backToBack = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: short.id,
+        guestName: "C",
+        guestEmail: "c@test.com",
+        startTime: "2026-11-16T08:00:00.000Z",
+      },
+    });
+    expect(backToBack.statusCode).toBe(201);
+  });
+
   it("allows back-to-back bookings", async () => {
     app = await createTestApp();
     const mt = await createMeetingType(app, "Test", "desc", 30);
