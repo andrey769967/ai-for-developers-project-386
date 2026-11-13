@@ -140,6 +140,7 @@ OpenAPI 3.1 (openapi.yaml)
 
 | Метод | Путь | Описание |
 |-------|------|---------|
+| GET | /health | Проверка живости: 200 и `{"status":"ok"}` |
 | GET | /api/meeting-types | Список типов встреч |
 | POST | /api/meeting-types | Создать тип встречи |
 | DELETE | /api/meeting-types/:id | Удалить тип встречи |

@@ -10,6 +10,7 @@ let app: FastifyInstance | undefined;
 afterEach(async () => {
   if (app) await app.close();
   app = undefined;
+  storage.reset();
 });
 
 describe("GET /health", () => {

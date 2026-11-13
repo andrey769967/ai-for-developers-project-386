@@ -69,6 +69,11 @@ model Conflict is ConflictResponse {
   @body body: ApiError;
 }
 
+@doc("Health status")
+model HealthStatus {
+  status: string;
+}
+
 @doc("Meeting type created")
 model MeetingTypeCreated is CreatedResponse {
   @body body: MeetingType;
@@ -103,4 +108,10 @@ interface Bookings {
 
   @doc("Create a booking. Returns 409 on overlap with an existing Booking.")
   @post create(@body body: BookingCreate): BookingCreated | BadRequest | NotFound | Conflict;
+}
+
+@route("/health")
+interface Health {
+  @doc("Liveness probe. Answers without touching storage and without side effects.")
+  @get check(): HealthStatus;
 }
