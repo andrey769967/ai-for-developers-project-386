@@ -49,6 +49,15 @@ export function GuestPage() {
     enabled: !!selectedType && step === "slots",
   });
 
+  const { data: bookingWindow } = useQuery({
+    queryKey: ["booking-window"],
+    queryFn: async () => {
+      const { data, error } = await client.GET("/api/booking-window");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const bookingMutation = useMutation({
     mutationFn: async (params: { guestName: string; guestEmail: string }) => {
       const { data, error } = await client.POST("/api/bookings", {
@@ -165,7 +174,7 @@ export function GuestPage() {
           </div>
           <TimezoneSelector value={timezone} onChange={setTimezone} />
         </div>
-        {slotsLoading ? (
+        {slotsLoading || !bookingWindow ? (
           <div className="text-center py-12 text-gray-400">Загрузка слотов...</div>
         ) : (
           <SlotCalendar
@@ -173,6 +182,8 @@ export function GuestPage() {
             selectedSlot={selectedSlot}
             onSelect={handleSelectSlot}
             timezone={timezone}
+            windowStart={bookingWindow.startTime}
+            windowEnd={bookingWindow.endTime}
           />
         )}
       </div>

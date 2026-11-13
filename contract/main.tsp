@@ -84,6 +84,12 @@ model HealthStatus {
   status: string;
 }
 
+@doc("Booking window boundaries in UTC")
+model BookingWindow {
+  startTime: utcDateTime;
+  endTime: utcDateTime;
+}
+
 @doc("Meeting type created")
 model MeetingTypeCreated is CreatedResponse {
   @body body: MeetingType;
@@ -124,4 +130,10 @@ interface Bookings {
 interface Health {
   @doc("Liveness probe. Answers without touching storage and without side effects.")
   @get check(): HealthStatus;
+}
+
+@route("/api/booking-window")
+interface BookingWindowApi {
+  @doc("Current Booking window: 14 Owner timezone calendar days, including today")
+  @get read(): BookingWindow;
 }
