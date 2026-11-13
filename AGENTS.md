@@ -78,3 +78,6 @@ Five canonical triage roles, each mapped to a label string of the same name. See
 ### Domain docs
 
 Single-context: `GLOSSARY.md` plus `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## Условия комитов
+Коммит реализации ссылается на тикет, который он закрывает, например feat: запись на свободный слот (#12)
