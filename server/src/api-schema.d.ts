@@ -130,14 +130,20 @@ export interface components {
             id: string;
             name: string;
             description: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Duration in minutes: multiple of 15, at least 15, at most 540 (the Owner working day 09:00-18:00)
+             */
             durationMinutes: number;
         };
         /** @description Create meeting type request */
         MeetingTypeCreate: {
             name: string;
             description: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Duration in minutes: multiple of 15, at least 15, at most 540 (the Owner working day 09:00-18:00)
+             */
             durationMinutes: number;
         };
         /** @description Available time slot */

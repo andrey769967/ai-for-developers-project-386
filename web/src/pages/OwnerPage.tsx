@@ -5,6 +5,7 @@ import type { components } from "../lib/api/schema";
 import { BookingList } from "../components/BookingList";
 import {
   DURATION_STEP_MINUTES,
+  MAX_DURATION_MINUTES,
   MIN_DURATION_MINUTES,
   parseDurationMinutes,
 } from "../lib/duration";
@@ -139,7 +140,8 @@ export function OwnerPage() {
               <span className="text-sm text-gray-500">мин</span>
             </div>
             <p className="mt-1 text-xs text-gray-500">
-              Кратна {DURATION_STEP_MINUTES} минутам и не меньше {MIN_DURATION_MINUTES}: например, 15, 30, 60, 90, 120.
+              Кратна {DURATION_STEP_MINUTES} минутам, от {MIN_DURATION_MINUTES} до {MAX_DURATION_MINUTES}:
+              например, 15, 30, 60, 90, 120.
             </p>
           </div>
           {error && <div className="bg-red-50 text-red-600 text-sm rounded-lg p-3">{error}</div>}

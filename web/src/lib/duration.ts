@@ -3,6 +3,8 @@
 // Здесь оно повторяется, чтобы форма объясняла ошибку до запроса к API.
 export const MIN_DURATION_MINUTES = 15;
 export const DURATION_STEP_MINUTES = 15;
+// Working hours 09:00-18:00: Booking обязан поместиться в рабочий день.
+export const MAX_DURATION_MINUTES = 540;
 
 export interface DurationParseResult {
   minutes: number | null;
@@ -26,6 +28,13 @@ export function parseDurationMinutes(raw: string): DurationParseResult {
     return {
       minutes: null,
       error: `Длительность не может быть меньше ${MIN_DURATION_MINUTES} минут`,
+    };
+  }
+
+  if (minutes > MAX_DURATION_MINUTES) {
+    return {
+      minutes: null,
+      error: `Длительность не может быть больше ${MAX_DURATION_MINUTES} минут`,
     };
   }
 

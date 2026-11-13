@@ -77,6 +77,41 @@ describe("POST /api/meeting-types", () => {
     });
     expect(res.statusCode).toBe(400);
   });
+
+  it("rejects duration longer than the working day", async () => {
+    app = await createTestApp();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/meeting-types",
+      payload: { name: "Test", description: "desc", durationMinutes: 600 },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({
+      message: "durationMinutes must not exceed 540 (the Owner working day)",
+    });
+  });
+
+  it("rejects duration just above the working day", async () => {
+    app = await createTestApp();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/meeting-types",
+      payload: { name: "Test", description: "desc", durationMinutes: 555 },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload).message).toContain("must not exceed 540");
+  });
+
+  it("accepts the maximum duration that fits the working day", async () => {
+    app = await createTestApp();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/meeting-types",
+      payload: { name: "Full day", description: "desc", durationMinutes: 540 },
+    });
+    expect(res.statusCode).toBe(201);
+    expect(JSON.parse(res.payload).durationMinutes).toBe(540);
+  });
 });
 
 describe("DELETE /api/meeting-types/:id", () => {
