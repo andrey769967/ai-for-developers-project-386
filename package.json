@@ -16,10 +16,16 @@
     "dev:web": "npm run dev -w web",
     "test": "npm run test -w server --if-present",
     "test:e2e": "playwright test",
-    "check": "npm test && npm run build && npm run test:e2e",
+    "lint": "eslint .",
+    "check:sdk": "node scripts/check-sdk-usage.mjs",
+    "check:generated": "npm run generate && git diff --exit-code -- web/src/lib/api/schema.d.ts server/src/api-schema.d.ts",
+    "smoke": "node scripts/smoke.mjs",
+    "check": "npm run lint && npm run check:sdk && npm run check:generated && npm test && npm run build && npm run test:e2e",
     "build": "npm run generate && npm run build:web && npm run build:server"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.0"
+    "@playwright/test": "^1.65.0",
+    "eslint": "^10.14.0",
+    "typescript-eslint": "^8.72.2"
   }
 }

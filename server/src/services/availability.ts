@@ -2,7 +2,7 @@ import { CONFIG } from "../config.js";
 import { storage } from "../storage/in-memory.js";
 import type { Slot } from "../types.js";
 import { ApiError } from "../types.js";
-import { addDays, getBookingWindow, getOwnerDateString, getWorkingHours } from "./time-window.js";
+import { addDays, getBookingWindow, getWorkingHours } from "./time-window.js";
 
 export function getAvailableSlots(meetingTypeId: string): Slot[] {
   const meetingType = storage.getMeetingType(meetingTypeId);

@@ -1,6 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
-import { createTestApp, createMeetingType } from "./helpers.js";
 import { storage } from "../src/storage/in-memory.js";
 import { getAvailableSlots } from "../src/services/availability.js";
 import { getWorkingHours } from "../src/services/time-window.js";
