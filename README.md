@@ -71,6 +71,10 @@ docker build -t call-booking .
 docker run --rm -p 3000:3000 call-booking
 ```
 
+## MCP для агента
+
+`opencode.json` подключает локальный Playwright MCP: агент может открыть приложение в браузере и проверить сценарий. Секретов и OAuth не требует, сервер запускается через `npx`.
+
 ## Локальная разработка
 
 ```bash
