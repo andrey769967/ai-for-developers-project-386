@@ -16,7 +16,7 @@ function apiErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
-export function AdminPage() {
+export function OwnerPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState(30);
@@ -111,7 +111,7 @@ export function AdminPage() {
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
-              placeholder="Краткое описание встречи"
+              placeholder="Краткое описание типа встречи"
             />
           </div>
           <div>
@@ -183,7 +183,7 @@ export function AdminPage() {
 
       {/* Bookings list */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Предстоящие встречи</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Записи</h2>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           {bookings ? <BookingList bookings={bookings} /> : (
             <div className="text-center py-8 text-gray-400">Загрузка...</div>

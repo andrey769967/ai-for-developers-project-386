@@ -59,7 +59,7 @@ export function GuestPage() {
           startTime: selectedSlot!.startTime,
         },
       });
-      if (error) throw new Error((error as { message?: string }).message ?? "Ошибка бронирования");
+      if (error) throw new Error((error as { message?: string }).message ?? "Ошибка записи");
       return data;
     },
     onSuccess: () => {
@@ -194,7 +194,7 @@ export function GuestPage() {
       ) : (
         <div className="text-center py-12 text-gray-400">
           <p>Нет доступных типов встреч</p>
-          <p className="text-sm mt-1">Создайте типы встреч на странице управления</p>
+          <p className="text-sm mt-1">Создайте типы встреч в календаре владельца</p>
         </div>
       )}
     </div>

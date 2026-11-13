@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { GuestPage } from "./pages/GuestPage";
-import { AdminPage } from "./pages/AdminPage";
+import { OwnerPage } from "./pages/OwnerPage";
 
-type View = "guest" | "admin";
+type View = "guest" | "owner";
 
 export default function App() {
   const [view, setView] = useState<View>("guest");
@@ -24,20 +24,20 @@ export default function App() {
               Запись
             </button>
             <button
-              onClick={() => setView("admin")}
+              onClick={() => setView("owner")}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                view === "admin"
+                view === "owner"
                   ? "bg-white text-indigo-600"
                   : "text-indigo-100 hover:bg-indigo-500"
               }`}
             >
-              Управление
+              Календарь владельца
             </button>
           </div>
         </div>
       </nav>
       <main className="max-w-5xl mx-auto px-4 py-8">
-        {view === "guest" ? <GuestPage /> : <AdminPage />}
+        {view === "guest" ? <GuestPage /> : <OwnerPage />}
       </main>
     </div>
   );

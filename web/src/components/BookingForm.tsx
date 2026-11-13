@@ -38,7 +38,7 @@ export function BookingForm({ slot, meetingTypeName, timezone, onSubmit, onBack 
     try {
       await onSubmit(guestName.trim(), guestEmail.trim());
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Ошибка при создании бронирования";
+      const message = err instanceof Error ? err.message : "Ошибка при создании записи";
       setError(message);
     } finally {
       setSubmitting(false);

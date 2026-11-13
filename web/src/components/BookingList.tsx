@@ -22,7 +22,7 @@ export function BookingList({ bookings }: Props) {
   if (bookings.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400">
-        <p>Нет предстоящих бронирований</p>
+        <p>Записей пока нет</p>
       </div>
     );
   }
