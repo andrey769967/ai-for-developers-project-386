@@ -54,7 +54,7 @@ describe("POST /api/meeting-types", () => {
     });
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.payload)).toEqual({
-      message: "name, description and durationMinutes are required",
+      message: "Укажите название, описание и длительность",
     });
   });
 
@@ -87,7 +87,7 @@ describe("POST /api/meeting-types", () => {
     });
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.payload)).toEqual({
-      message: "durationMinutes must not exceed 540 (the Owner working day)",
+      message: "Длительность не может быть больше 540 минут: встреча должна поместиться в рабочий день",
     });
   });
 
@@ -99,7 +99,7 @@ describe("POST /api/meeting-types", () => {
       payload: { name: "Test", description: "desc", durationMinutes: 555 },
     });
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.payload).message).toContain("must not exceed 540");
+    expect(JSON.parse(res.payload).message).toContain("540");
   });
 
   it("accepts the maximum duration that fits the working day", async () => {
@@ -126,7 +126,7 @@ describe("DELETE /api/meeting-types/:id", () => {
     app = await createTestApp();
     const res = await app.inject({ method: "DELETE", url: "/api/meeting-types/nonexistent" });
     expect(res.statusCode).toBe(404);
-    expect(JSON.parse(res.payload)).toEqual({ message: "Meeting type not found" });
+    expect(JSON.parse(res.payload)).toEqual({ message: "Тип встречи не найден" });
   });
 
   it("returns 409 when bookings exist for the meeting type", async () => {
@@ -143,7 +143,7 @@ describe("DELETE /api/meeting-types/:id", () => {
     const res = await app.inject({ method: "DELETE", url: `/api/meeting-types/${mt.id}` });
     expect(res.statusCode).toBe(409);
     expect(JSON.parse(res.payload)).toEqual({
-      message: "Cannot delete a meeting type with existing bookings",
+      message: "Нельзя удалить тип встречи, у которого есть записи",
     });
   });
 });

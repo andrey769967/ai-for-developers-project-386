@@ -7,7 +7,7 @@ import { addDays, getBookingWindow, getOwnerDateString, getWorkingHours } from "
 export function getAvailableSlots(meetingTypeId: string): Slot[] {
   const meetingType = storage.getMeetingType(meetingTypeId);
   if (!meetingType) {
-    throw new ApiError(404, "Meeting type not found");
+    throw new ApiError(404, "Тип встречи не найден");
   }
 
   const durationMs = meetingType.durationMinutes * 60 * 1000;

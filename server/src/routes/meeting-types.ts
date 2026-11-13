@@ -16,22 +16,25 @@ export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
     const body = request.body as Partial<MeetingTypeCreate>;
 
     if (!body?.name || !body?.description || !body?.durationMinutes) {
-      throw new ApiError(400, "name, description and durationMinutes are required");
+      throw new ApiError(400, "Укажите название, описание и длительность");
     }
 
     if (!Number.isInteger(body.durationMinutes) || body.durationMinutes < CONFIG.minDurationMinutes) {
-      throw new ApiError(400, `durationMinutes must be an integer >= ${CONFIG.minDurationMinutes}`);
+      throw new ApiError(
+        400,
+        `Длительность должна быть целым числом минут не меньше ${CONFIG.minDurationMinutes}`,
+      );
     }
 
     if (body.durationMinutes > MAX_DURATION_MINUTES) {
       throw new ApiError(
         400,
-        `durationMinutes must not exceed ${MAX_DURATION_MINUTES} (the Owner working day)`,
+        `Длительность не может быть больше ${MAX_DURATION_MINUTES} минут: встреча должна поместиться в рабочий день`,
       );
     }
 
     if (body.durationMinutes % CONFIG.slotStepMinutes !== 0) {
-      throw new ApiError(400, `durationMinutes must be a multiple of ${CONFIG.slotStepMinutes}`);
+      throw new ApiError(400, `Длительность должна быть кратна ${CONFIG.slotStepMinutes} минутам`);
     }
 
     const data: MeetingTypeCreate = {
@@ -50,10 +53,10 @@ export async function meetingTypesRoutes(app: FastifyInstance): Promise<void> {
     const { id } = request.params as { id: string };
     const result = storage.deleteMeetingTypeIfNoBookings(id);
     if (result === "not_found") {
-      throw new ApiError(404, "Meeting type not found");
+      throw new ApiError(404, "Тип встречи не найден");
     }
     if (result === "has_bookings") {
-      throw new ApiError(409, "Cannot delete a meeting type with existing bookings");
+      throw new ApiError(409, "Нельзя удалить тип встречи, у которого есть записи");
     }
     return reply.code(204).send();
   });

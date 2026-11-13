@@ -109,6 +109,6 @@ describe("createBooking Booking window", () => {
     });
 
     expect(response.statusCode).toBe(400);
-    expect(JSON.parse(response.payload).message).toBe("Start time is before working hours");
+    expect(JSON.parse(response.payload).message).toBe("Время начала раньше рабочих часов");
   });
 });

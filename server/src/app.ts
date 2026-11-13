@@ -33,7 +33,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
       return;
     }
     app.log.error(err);
-    reply.code(500).send({ message: "Internal Server Error" });
+    reply.code(500).send({ message: "Внутренняя ошибка сервера" });
   });
 
   // Liveness probe: no storage access, no side effects.
@@ -55,7 +55,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
     app.setNotFoundHandler((request, reply) => {
       if (request.url.startsWith("/api/") || request.url.startsWith("/health")) {
-        reply.code(404).send({ message: "Not found" });
+        reply.code(404).send({ message: "Не найдено" });
         return;
       }
       reply.sendFile("index.html");
