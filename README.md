@@ -148,6 +148,7 @@ OpenAPI 3.1 (openapi.yaml)
 | POST | /api/meeting-types | Создать тип встречи |
 | DELETE | /api/meeting-types/:id | Удалить тип встречи |
 | GET | /api/meeting-types/:id/slots | Свободные слоты на 14 дней |
+| GET | /api/booking-window | Границы окна записи в UTC |
 | GET | /api/bookings | Список записей |
 | POST | /api/bookings | Создать запись |
 
