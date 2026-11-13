@@ -5,6 +5,7 @@ import { existsSync } from "node:fs";
 import { storage } from "./storage/in-memory.js";
 import { meetingTypesRoutes } from "./routes/meeting-types.js";
 import { bookingsRoutes } from "./routes/bookings.js";
+import { bookingWindowRoutes } from "./routes/booking-window.js";
 import { ApiError } from "./types.js";
 
 export interface BuildAppOptions {
@@ -41,6 +42,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   await app.register(meetingTypesRoutes, { prefix: "/api" });
   await app.register(bookingsRoutes, { prefix: "/api" });
+  await app.register(bookingWindowRoutes, { prefix: "/api" });
 
   if (seed) {
     storage.seed();

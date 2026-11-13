@@ -1,5 +1,12 @@
 import { useState, useMemo } from "react";
 import type { components } from "../lib/api/schema";
+import {
+  buildCalendarDays,
+  formatMonth,
+  getDayKey,
+  getDayNumber,
+  getWeekdayMon,
+} from "../lib/calendar";
 
 type Slot = components["schemas"]["Slot"];
 
@@ -8,6 +15,10 @@ interface Props {
   selectedSlot: Slot | null;
   onSelect: (slot: Slot) => void;
   timezone: string;
+  // UTC instants of the Booking window; the calendar always shows the full
+  // window, including days with no free Slot left.
+  windowStart: string;
+  windowEnd: string;
 }
 
 function formatTime(iso: string, tz: string): string {
@@ -18,72 +29,53 @@ function formatTime(iso: string, tz: string): string {
   }).format(new Date(iso));
 }
 
-function getDayKey(iso: string, tz: string): string {
-  return new Intl.DateTimeFormat("sv-SE", {
-    timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(iso));
-}
-
-// Monday-first weekday index (0=Mon .. 6=Sun) in the given timezone
-function getWeekdayMon(iso: string, tz: string): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: tz,
-    weekday: "short",
-  }).formatToParts(new Date(iso));
-  const weekday = parts.find((p) => p.type === "weekday")?.value ?? "Mon";
-  const map: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
-  return map[weekday] ?? 0;
-}
-
-function isToday(iso: string, tz: string): boolean {
-  return getDayKey(iso, tz) === getDayKey(new Date().toISOString(), tz);
-}
-
 const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
-export function SlotCalendar({ slots, selectedSlot, onSelect, timezone }: Props) {
+export function SlotCalendar({ slots, selectedSlot, onSelect, timezone, windowStart, windowEnd }: Props) {
   const tz = timezone;
 
-  // Group slots by day key (in selected timezone)
-  const days = useMemo(() => {
+  // Group slots by the day the guest sees them on
+  const slotsByDay = useMemo(() => {
     const groups = new Map<string, Slot[]>();
     for (const slot of slots) {
       const key = getDayKey(slot.startTime, tz);
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key)!.push(slot);
+      const group = groups.get(key);
+      if (group) {
+        group.push(slot);
+      } else {
+        groups.set(key, [slot]);
+      }
     }
-    return Array.from(groups.entries());
+    return groups;
   }, [slots, tz]);
 
-  // Reset selected day when timezone changes
-  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(
-    days.length > 0 ? days[0][0] : null,
+  // All 14 dates of the Booking window, starting from the guest's date of
+  // the window start. Days without free Slot stay visible but muted.
+  const calendarDays = useMemo(
+    () => buildCalendarDays(windowStart, windowEnd, tz),
+    [windowStart, windowEnd, tz],
   );
 
-  // Ensure selected day is valid when timezone changes
-  const validDayKey = days.find(([key]) => key === selectedDayKey)
+  const dayEntries = useMemo(
+    () => calendarDays.map((key) => ({ key, slots: slotsByDay.get(key) ?? [] })),
+    [calendarDays, slotsByDay],
+  );
+
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
+
+  const firstAvailableKey = dayEntries.find((day) => day.slots.length > 0)?.key ?? null;
+  const validDayKey = dayEntries.some((day) => day.key === selectedDayKey)
     ? selectedDayKey
-    : days.length > 0
-      ? days[0][0]
-      : null;
+    : (firstAvailableKey ?? dayEntries[0]?.key ?? null);
 
-  const currentDay = days.find(([key]) => key === validDayKey);
-  const daySlots = currentDay?.[1] ?? [];
+  const currentDay = dayEntries.find((day) => day.key === validDayKey);
+  const daySlots = currentDay?.slots ?? [];
 
-  const leadingBlanks = days.length > 0 ? getWeekdayMon(days[0][1][0].startTime, tz) : 0;
+  const todayKey = getDayKey(new Date().toISOString(), tz);
+  const leadingBlanks = calendarDays.length > 0 ? getWeekdayMon(calendarDays[0]) : 0;
 
-  if (days.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-400">
-        <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <p>Нет свободных слотов на ближайшие 14 дней</p>
-      </div>
-    );
+  if (calendarDays.length === 0) {
+    return null;
   }
 
   return (
@@ -102,30 +94,47 @@ export function SlotCalendar({ slots, selectedSlot, onSelect, timezone }: Props)
         </div>
         <div className="grid grid-cols-7 gap-px bg-gray-100 flex-1 overflow-y-auto content-start">
           {Array.from({ length: leadingBlanks }).map((_, i) => (
-            <div key={`blank-${i}`} className="bg-white h-9" />
+            <div key={`blank-${i}`} className="bg-white h-11" />
           ))}
-          {days.map(([dayKey, dSlots]) => {
-            const iso = dSlots[0].startTime;
-            const isActive = dayKey === validDayKey;
-            const today = isToday(iso, tz);
-            const hasSelectedSlot = !!selectedSlot && dSlots.some((s) => s.startTime === selectedSlot.startTime);
-            const dayNum = new Intl.DateTimeFormat("ru-RU", { timeZone: tz, day: "numeric" }).format(new Date(iso));
+          {dayEntries.map(({ key, slots: daySlotsForDay }, index) => {
+            const isActive = key === validDayKey;
+            const isToday = key === todayKey;
+            const hasSlots = daySlotsForDay.length > 0;
+            const hasSelectedSlot =
+              !!selectedSlot && daySlotsForDay.some((s) => s.startTime === selectedSlot.startTime);
+            const showMonth = index === 0 || getDayNumber(key) === 1;
 
             return (
               <button
-                key={dayKey}
-                onClick={() => setSelectedDayKey(dayKey)}
-                className={`relative h-9 flex items-center justify-center text-sm transition-colors ${
+                key={key}
+                onClick={() => setSelectedDayKey(key)}
+                aria-label={hasSlots ? undefined : "Нет свободных слотов"}
+                className={`relative h-11 flex flex-col items-center justify-center text-sm transition-colors ${
                   isActive
                     ? "bg-indigo-600 text-white"
-                    : today
+                    : isToday
                       ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
-                      : "bg-white text-gray-700 hover:bg-gray-50"
+                      : hasSlots
+                        ? "bg-white text-gray-700 hover:bg-gray-50"
+                        : "bg-white text-gray-300 hover:bg-gray-50"
                 }`}
               >
-                <span className={`font-medium leading-none ${isActive ? "text-white" : today ? "text-indigo-600" : "text-gray-700"}`}>
-                  {dayNum}
+                <span
+                  className={`font-medium leading-none ${
+                    isActive ? "text-white" : isToday ? "text-indigo-600" : hasSlots ? "text-gray-700" : "text-gray-300"
+                  }`}
+                >
+                  {getDayNumber(key)}
                 </span>
+                {showMonth && (
+                  <span
+                    className={`mt-0.5 text-[9px] leading-none ${
+                      isActive ? "text-indigo-100" : "text-gray-400"
+                    }`}
+                  >
+                    {formatMonth(key)}
+                  </span>
+                )}
                 {hasSelectedSlot && !isActive && (
                   <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
                 )}
@@ -145,7 +154,9 @@ export function SlotCalendar({ slots, selectedSlot, onSelect, timezone }: Props)
         </div>
         <div className="overflow-y-auto p-3" style={{ height: "calc(100% - 2.25rem)" }}>
           {daySlots.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 text-sm">Нет свободных слотов</div>
+            <div className="text-center py-8 text-gray-400 text-sm">
+              Нет свободных слотов в этот день
+            </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {daySlots.map((slot) => {

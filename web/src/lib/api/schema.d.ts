@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/booking-window": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Current Booking window: 14 Owner timezone calendar days, including today */
+        get: operations["BookingWindowApi_read"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/bookings": {
         parameters: {
             query?: never;
@@ -121,6 +138,13 @@ export interface components {
             /** Format: date-time */
             startTime: string;
         };
+        /** @description Booking window boundaries in UTC */
+        BookingWindow: {
+            /** Format: date-time */
+            startTime: string;
+            /** Format: date-time */
+            endTime: string;
+        };
         /** @description Health status */
         HealthStatus: {
             status: string;
@@ -162,6 +186,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    BookingWindowApi_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingWindow"];
+                };
+            };
+        };
+    };
     Bookings_list: {
         parameters: {
             query?: never;
