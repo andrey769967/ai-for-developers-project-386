@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/andrey769967/ai-for-developers-project-386/compare/v1.0.0...v1.0.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **web:** стек календаря гостя на телефоне ([#48](https://github.com/andrey769967/ai-for-developers-project-386/issues/48)) ([86db0cf](https://github.com/andrey769967/ai-for-developers-project-386/commit/86db0cff639b1c9dff9e2d4b5ba4399f671d6cb9))
+
 ## 1.0.0 (2026-11-13)
 
 
