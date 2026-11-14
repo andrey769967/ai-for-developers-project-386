@@ -79,9 +79,10 @@ export function SlotCalendar({ slots, selectedSlot, onSelect, timezone, windowSt
   }
 
   return (
-    <div className="flex gap-3 h-[420px]">
-      {/* Left panel: calendar grid */}
-      <div className="w-[280px] flex-shrink-0 border border-gray-200 rounded-xl overflow-hidden bg-white flex flex-col">
+    <div className="flex flex-col gap-3 md:h-[420px] md:flex-row">
+      {/* Left panel: calendar grid. On phones the calendar and the time list
+          stack, so the time buttons keep their width and stay reachable. */}
+      <div className="flex w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white md:w-[280px] md:flex-shrink-0">
         <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
           Даты
         </div>
@@ -148,11 +149,11 @@ export function SlotCalendar({ slots, selectedSlot, onSelect, timezone, windowSt
       </div>
 
       {/* Right panel: time slots */}
-      <div className="flex-1 border border-gray-200 rounded-xl overflow-hidden bg-white">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
           Время
         </div>
-        <div className="overflow-y-auto p-3" style={{ height: "calc(100% - 2.25rem)" }}>
+        <div className="min-h-[180px] max-h-[320px] flex-1 overflow-y-auto p-3 md:min-h-0 md:max-h-none">
           {daySlots.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">
               Нет свободных слотов в этот день
